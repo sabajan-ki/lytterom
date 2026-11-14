@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lytterom</title>
+<style>
+:root{
+  --bg:#f6f2ea; --panel:#fffdf8; --ink:#22201c; --muted:#6d675d; --line:#e1d9ca;
+  --accent:#8a3b2a; --accent-ink:#fff; --chip:#ece5d6; --hires:#7a5c12; --hires-bg:#f3e6bd;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#17161a; --panel:#201f24; --ink:#ece8df; --muted:#9d978b; --line:#34323a;
+    --accent:#d98b6a; --accent-ink:#1a1210; --chip:#2b2a31; --hires:#e9cf7a; --hires-bg:#3a3319; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:28px 16px 80px}
+h1{font:600 2.1rem/1.1 Georgia,"Times New Roman",serif;margin:0}
+h2{font:600 1.3rem/1.2 Georgia,serif;margin:0 0 12px}
+.sub{color:var(--muted);margin:6px 0 22px;max-width:60ch}
+nav{display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;color:var(--muted);cursor:pointer}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--accent);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px}
+.label{font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+.label:first-child{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--chip);color:var(--ink);border:1px solid transparent;border-radius:999px;padding:7px 14px;font:inherit;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 18px;font:600 1rem/1 inherit;cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn.small{padding:7px 12px;font-size:.9rem}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+.album{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.album:first-child{border-top:0}
+.cover{width:92px;height:92px;border-radius:8px;object-fit:cover;background:var(--chip);display:block}
+.album h3{margin:0;font:600 1.05rem/1.25 Georgia,serif}
+.artist{color:var(--muted);font-size:.95rem}
+.note{margin:6px 0 8px;font-size:.95rem;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem}
+.q{border-radius:6px;padding:2px 7px;background:var(--chip);color:var(--muted);font-weight:600}
+.q.hires{background:var(--hires-bg);color:var(--hires)}
+.tag{color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.actions a{color:var(--accent);font-weight:600;text-decoration:none}
+.actions a:hover{text-decoration:underline}
+.vote{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:inherit;color:var(--ink);cursor:pointer}
+.vote[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.why{font-size:.85rem;color:var(--muted);font-style:italic}
+.empty{color:var(--muted);padding:8px 0}
+input[type=search],input[type=text]{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;max-width:340px}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;align-items:center;max-width:520px}
+.bar{height:10px;border-radius:5px;background:var(--chip);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.saved{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.saved:first-of-type{border-top:0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+small.foot{display:block;color:var(--muted);margin-top:26px;max-width:70ch}
+.sp-kort{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line, rgba(127,127,127,.25));padding:10px 4px;cursor:pointer}
+.sp-kort:hover{background:rgba(127,127,127,.08)}
+.sp-kort .tag{white-space:nowrap}
+.sp-spor{padding-left:2.4em;margin:10px 0 0}
+.sp-spor li{padding:7px 0;border-bottom:1px solid var(--line, rgba(127,127,127,.2))}
+.sp-spor li.ok{opacity:.5}
+.sp-rad{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.sp-rad .ting{min-width:0;flex:1 1 260px}
+.sp-rad .ting strong{display:block;overflow-wrap:anywhere}
+.sp-rad .handl{display:flex;gap:8px;align-items:center}
+.sp-rad a{white-space:nowrap}
+@media (max-width:520px){.album{grid-template-columns:64px 1fr}.cover{width:64px;height:64px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lytterom</h1>
+  <p class="sub">Velg stemning og smak, få en lytteliste med godt innspilte album, og åpne dem rett i Qobuz. Tommel opp og ned lærer lista hva du liker.</p>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="lag" aria-selected="true">Lag liste</button>
+    <button role="tab" data-tab="katalog" aria-selected="false">Hele katalogen</button>
+    <button role="tab" data-tab="smak" aria-selected="false">Min smak</button>
+    <button role="tab" data-tab="lagret" aria-selected="false">Lagrede lister</button>
+    <button role="tab" data-tab="spotify" aria-selected="false">Fra Spotify</button>
+  </nav>
+
+  <section id="tab-lag">
+    <div class="panel">
+      <div class="label">Stemning</div>
+      <div class="chips" id="stemninger"></div>
+      <div class="label">Smak (velg en eller flere, eller ingen for blanding)</div>
+      <div class="chips" id="smaker"></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="hires"> Bare hi-res (24-bit)</label>
+        <label class="check">Antall album
+          <select id="antall" style="font:inherit;padding:6px;border-radius:8px"><option>5</option><option selected>8</option><option>12</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <button class="btn" id="lag">Lag liste</button>
+        <button class="btn ghost" id="overrask">Overrask meg</button>
+      </div>
+    </div>
+    <div class="panel" id="resultat" hidden>
+      <h2 id="listetittel"></h2>
+      <div id="liste"></div>
+      <div class="row">
+        <button class="btn ghost small" id="ny">Ny blanding</button>
+        <button class="btn ghost small" id="lagre">Lagre lista</button>
+        <button class="btn ghost small" id="kopier">Kopier som tekst</button>
+        <button class="btn ghost small" id="del">Kopier delelenke</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-katalog" hidden>
+    <div class="panel">
+      <input type="search" id="sok" placeholder="Søk etter artist, tittel eller smak" aria-label="Søk i katalogen">
+      <div id="katalogliste" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="tab-smak" hidden>
+    <div class="panel">
+      <h2>Slik ser smaken din ut</h2>
+      <p class="sub" id="smaktekst"></p>
+      <div class="bars" id="smakbarer"></div>
+      <div class="row"><button class="btn ghost small" id="nullstill">Nullstill tomlene</button></div>
+    </div>
+    <div class="panel">
+      <h2>Anbefalt videre</h2>
+      <div id="anbefalt"></div>
+    </div>
+  </section>
+
+  <section id="tab-lagret" hidden>
+    <div class="panel"><h2>Lagrede lister</h2><div id="lagrede"></div></div>
+  </section>
+
+  <section id="tab-spotify" hidden>
+    <div class="panel">
+      <h2>Spillelistene dine fra Spotify</h2>
+      <p class="sub" id="sp-intro"></p>
+      <input type="search" id="sp-sok" placeholder="Søk i lister, spor og artister" aria-label="Søk i Spotify-listene">
+      <div id="sp-lister" style="margin-top:10px"></div>
+    </div>
+    <div class="panel" id="sp-liste" hidden>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 id="sp-tittel" style="margin:0"></h2>
+        <button class="btn ghost small" id="sp-tilbake">Alle lister</button>
+      </div>
+      <p class="sub" id="sp-info"></p>
+      <div class="row">
+        <button class="btn ghost small" id="sp-kopier">Kopier lista som tekst</button>
+        <label class="check"><input type="checkbox" id="sp-skjul"> Skjul spor jeg har lagt inn</label>
+      </div>
+      <ol class="sp-spor" id="sp-spor"></ol>
+    </div>
+  </section>
+
+  <small class="foot">Lydkvalitet og lenker er slått opp i Qobuz-katalogen 14. november 2026 og kan endre seg. På Mac åpner «Åpne i Qobuz-appen» albumet i Qobuz-appen; på mobil åpner «Åpne i Qobuz» appen hvis den er installert. Velg høyttaleren din i Qobuz-appen (Qobuz Connect) for å spille på anlegget. Tomler og lagrede lister ligger bare i denne nettleseren.</small>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="katalog.js"></script>
+<script src="qobuz.js"></script>
+<script src="spotify.js"></script>
+<script>
+(function(){
+  var STEMNING = {jul:"Julestemning", kveld:"Rolig kveld", fokus:"Konsentrasjon", gjester:"Gjester på besøk", morgen:"Lys morgen", dypt:"Dyp lytting"};
+  var SMAK = {jul:"Jul", crooner:"Crooner", vokaljazz:"Vokaljazz", bach:"Bach", rameau:"Rameau", barokk:"Barokk", piano:"Klassisk piano", cembalo:"Cembalo", jazzpiano:"Jazzpiano", nordisk:"Nordisk"};
+  var ALBUM = window.KATALOG.map(function(r){
+    var q = window.QOBUZ[r[0]] || null;
+    return {id:r[0], artist:r[1], tittel:r[2], aar:r[3], smak:r[4], stemning:r[5], notat:r[6],
+      qid:q&&q[0], slug:q&&q[1], kval:q?q[2]:"", hires:!!q && q[2].indexOf("24/")===0};
+  });
+  // mobil = telefon/nettbrett (berøringsskjerm uten mus)
+  var MOBIL = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent) && !window.matchMedia("(pointer:fine)").matches);
+  var VED_ID = {}; ALBUM.forEach(function(a){VED_ID[a.id]=a;});
+
+  // ── lagring (tåler at localStorage mangler) ──
+  function les(n, std){ try{ var v=localStorage.getItem("lytterom."+n); return v?JSON.parse(v):std; }catch(e){ return std; } }
+  function skriv(n, v){ try{ localStorage.setItem("lytterom."+n, JSON.stringify(v)); }catch(e){} }
+  var tomler = les("tomler", {});      // id → 1 | -1
+  var lagrede = les("lister", []);     // [{navn, ider}]
+  var valgt = {stemning:null, smak:[]};
+  var gjeldende = [];
+
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, barn){
+    var e=document.createElement(tag);
+    for(var k in (attrs||{})){ if(k==="text") e.textContent=attrs[k]; else if(k==="class") e.className=attrs[k]; else e.setAttribute(k, attrs[k]); }
+    (barn||[]).forEach(function(b){ if(b) e.appendChild(b); });
+    return e;
+  }
+  function toast(t){ var x=$("toast"); x.textContent=t; x.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(function(){x.classList.remove("on");},2200); }
+
+  // ── smaksvekter fra tomlene ──
+  function vekter(){
+    var v={}; Object.keys(SMAK).forEach(function(s){v[s]=0;});
+    Object.keys(tomler).forEach(function(id){ var a=VED_ID[id]; if(!a) return; a.smak.forEach(function(s){ v[s]+=tomler[id]; }); });
+    return v;
+  }
+  function poeng(a, v, jitter){
+    var p=0;
+    if(valgt.stemning && a.stemning.indexOf(valgt.stemning)>=0) p+=3;
+    valgt.smak.forEach(function(s){ if(a.smak.indexOf(s)>=0) p+=2; });
+    a.smak.forEach(function(s){ p+=0.4*Math.max(-3, Math.min(3, v[s])); });
+    if(tomler[a.id]===1) p+=0.5;
+    if(a.hires) p+=0.3;
+    return p + Math.random()*jitter;
+  }
+  function lagListe(){
+    var v=vekter(), n=+$("antall").value, bareHires=$("hires").checked;
+    var kand=ALBUM.filter(function(a){
+      if(tomler[a.id]===-1) return false;
+      if(bareHires && !a.hires) return false;
+      if(valgt.stemning && a.stemning.indexOf(valgt.stemning)<0) return false;
+      if(valgt.smak.length && !valgt.smak.some(function(s){return a.smak.indexOf(s)>=0;})) return false;
+      // jul bare når den er bedt om
+      if(valgt.stemning!=="jul" && valgt.smak.indexOf("jul")<0 && a.smak.indexOf("jul")>=0) return false;
+      return true;
+    });
+    kand=kand.map(function(a){return {a:a,p:poeng(a,v,2.5)};}).sort(function(x,y){return y.p-x.p;});
+    var ut=[], perArtist={};
+    kand.forEach(function(k){
+      if(ut.length>=n) return;
+      var c=perArtist[k.a.artist]||0; if(c>=2) return;
+      perArtist[k.a.artist]=c+1; ut.push(k.a);
+    });
+    return ut;
+  }
+  function tittel(){
+    var d=[]; if(valgt.stemning) d.push(STEMNING[valgt.stemning]);
+    if(valgt.smak.length) d.push(valgt.smak.map(function(s){return SMAK[s];}).join(" + "));
+    return d.length? d.join(" · ") : "Blanding";
+  }
+
+  // ── albumkort ──
+  function omslag(a){
+    var img=el("img",{class:"cover",alt:"",loading:"lazy"});
+    if(a.qid){ var q=a.qid; img.src="https://static.qobuz.com/images/covers/"+q.slice(-2)+"/"+q.slice(-4,-2)+"/"+q+"_230.jpg"; }
+    img.onerror=function(){ img.removeAttribute("src"); };
+    return img;
+  }
+  function stem(a, verdi, tegn, navn){
+    var b=el("button",{class:"vote","aria-pressed":String(tomler[a.id]===verdi),"aria-label":navn+": "+a.tittel,title:navn,text:tegn});
+    b.onclick=function(){
+      if(tomler[a.id]===verdi) delete tomler[a.id]; else tomler[a.id]=verdi;
+      skriv("tomler", tomler); tegnAlt();
+    };
+    return b;
+  }
+  function kort(a, hvorfor){
+    var lenker=[];
+    if(a.qid){
+      if(MOBIL){
+        // open.qobuz.com er en universell lenke: åpner Qobuz-appen hvis den er installert, ellers nettsiden
+        lenker.push(el("a",{href:"https://open.qobuz.com/album/"+a.qid,text:"Åpne i Qobuz"}));
+        lenker.push(el("a",{href:"https://www.qobuz.com/no-en/album/"+a.slug+"/"+a.qid,target:"_blank",rel:"noopener",text:"Albumside",style:"font-weight:400"}));
+      } else {
+        // qobuzapp:// åpner albumet i Qobuz-appen på Mac; derfra sendes lyden til WiiM med Qobuz Connect
+        lenker.push(el("a",{href:"qobuzapp://album/"+a.qid,text:"Åpne i Qobuz-appen"}));
+        lenker.push(el("a",{href:"https://open.qobuz.com/album/"+a.qid,target:"_blank",rel:"noopener",text:"Nettspiller",style:"font-weight:400"}));
+      }
+    } else {
+      lenker.push(el("a",{href:"https://www.qobuz.com/no-en/search?q="+encodeURIComponent(a.artist+" "+a.tittel),target:"_blank",rel:"noopener",text:"Søk i Qobuz"}));
+    }
+    var meta=el("div",{class:"meta"},[
+      a.kval? el("span",{class:"q"+(a.hires?" hires":""),text:(a.hires?"Hi-Res ":"CD ")+a.kval.replace("/","-bit / ")+" kHz"}) : null,
+      el("span",{class:"tag",text:a.smak.map(function(s){return SMAK[s];}).join(" · ")})
+    ]);
+    return el("article",{class:"album"},[
+      omslag(a),
+      el("div",{},[
+        el("h3",{text:a.tittel}),
+        el("div",{class:"artist",text:a.artist+" · "+a.aar}),
+        el("p",{class:"note",text:a.notat}),
+        meta,
+        hvorfor? el("div",{class:"why",text:hvorfor}) : null,
+        el("div",{class:"actions"}, lenker.concat([stem(a,1,"👍","Liker"), stem(a,-1,"👎","Ikke for meg")]))
+      ])
+    ]);
+  }
+  function fyll(node, album, tomTekst, hvorforFn){
+    node.textContent="";
+    if(!album.length){ node.appendChild(el("p",{class:"empty",text:tomTekst})); return; }
+    album.forEach(function(a){ node.appendChild(kort(a, hvorforFn?hvorforFn(a):null)); });
+  }
+
+  // ── faner ──
+  function tegnListe(){
+    $("resultat").hidden=false;
+    $("listetittel").textContent=tittel();
+    fyll($("liste"), gjeldende, "Ingen album passer dette valget. Prøv færre filtre, eller skru av «Bare hi-res».");
+  }
+  function tegnKatalog(){
+    var s=$("sok").value.trim().toLowerCase();
+    var ut=ALBUM.filter(function(a){
+      if(!s) return true;
+      var t=(a.artist+" "+a.tittel+" "+a.smak.map(function(x){return SMAK[x];}).join(" ")).toLowerCase();
+      return s.split(/\s+/).every(function(o){return t.indexOf(o)>=0;});
+    });
+    fyll($("katalogliste"), ut, "Ingen treff.");
+  }
+  function tegnSmak(){
+    var v=vekter(), antall=Object.keys(tomler).length;
+    $("smaktekst").textContent = antall
+      ? "Bygget på "+antall+" tomler. Jo flere du gir, jo mer treffer listene."
+      : "Du har ikke gitt noen tomler ennå. Gi tommel opp eller ned på album i listene, så fylles dette ut.";
+    var b=$("smakbarer"); b.textContent="";
+    var maks=Math.max.apply(null, Object.keys(v).map(function(k){return Math.abs(v[k]);}).concat([1]));
+    Object.keys(SMAK).sort(function(x,y){return v[y]-v[x];}).forEach(function(s){
+      b.appendChild(el("span",{text:SMAK[s]}));
+      var i=el("i"); i.style.width=Math.max(0,v[s])/maks*100+"%";
+      b.appendChild(el("div",{class:"bar"},[i]));
+      b.appendChild(el("span",{class:"tag",text:(v[s]>0?"+":"")+v[s]}));
+    });
+    // anbefalt: ikke vurderte album som deler smak med det du liker
+    var likt=ALBUM.filter(function(a){return tomler[a.id]===1;});
+    var ut=ALBUM.filter(function(a){return !tomler[a.id];}).map(function(a){
+      var p=0; a.smak.forEach(function(s){p+=v[s];}); return {a:a,p:p+(a.hires?0.3:0)};
+    }).filter(function(k){return k.p>0;}).sort(function(x,y){return y.p-x.p;}).slice(0,6).map(function(k){return k.a;});
+    fyll($("anbefalt"), ut, "Kommer når du har gitt noen tomler opp.", function(a){
+      var m=likt.filter(function(l){return l.smak.some(function(s){return a.smak.indexOf(s)>=0;});})[0];
+      return m? "Fordi du likte "+m.tittel+" ("+m.artist+")" : null;
+    });
+  }
+  function tegnLagrede(){
+    var n=$("lagrede"); n.textContent="";
+    if(!lagrede.length){ n.appendChild(el("p",{class:"empty",text:"Ingen lagrede lister ennå. Lag en liste og velg «Lagre lista»."})); return; }
+    lagrede.forEach(function(l, i){
+      var apne=el("button",{class:"btn ghost small",text:"Åpne"}), slett=el("button",{class:"btn ghost small",text:"Slett"});
+      apne.onclick=function(){ visIder(l.ider, l.navn); };
+      slett.onclick=function(){ if(confirm("Slette «"+l.navn+"»?")){ lagrede.splice(i,1); skriv("lister",lagrede); tegnLagrede(); } };
+      n.appendChild(el("div",{class:"saved"},[
+        el("div",{},[el("strong",{text:l.navn}), el("div",{class:"tag",text:l.ider.length+" album"})]),
+        el("div",{style:"display:flex;gap:8px"},[apne,slett])
+      ]));
+    });
+  }
+  function tegnAlt(){ if(gjeldende.length) tegnListe(); tegnKatalog(); tegnSmak(); tegnLagrede(); }
+  function visFane(navn){
+    ["lag","katalog","smak","lagret","spotify"].forEach(function(t){
+      $("tab-"+t).hidden = t!==navn;
+      document.querySelector('[data-tab="'+t+'"]').setAttribute("aria-selected", String(t===navn));
+    });
+  }
+  function visIder(ider, navn){
+    gjeldende=ider.map(function(i){return VED_ID[i];}).filter(Boolean);
+    visFane("lag"); tegnListe(); $("listetittel").textContent=navn||"Delt liste";
+    $("resultat").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  // ── oppsett ──
+  function chips(node, kart, flervalg, vedKlikk){
+    Object.keys(kart).forEach(function(k){
+      var b=el("button",{class:"chip","aria-pressed":"false",text:kart[k]});
+      b.onclick=function(){ vedKlikk(k); oppdaterChips(); };
+      b.dataset.k=k; node.appendChild(b);
+    });
+  }
+  function oppdaterChips(){
+    [].forEach.call($("stemninger").children,function(b){ b.setAttribute("aria-pressed", String(valgt.stemning===b.dataset.k)); });
+    [].forEach.call($("smaker").children,function(b){ b.setAttribute("aria-pressed", String(valgt.smak.indexOf(b.dataset.k)>=0)); });
+  }
+  chips($("stemninger"), STEMNING, false, function(k){ valgt.stemning = valgt.stemning===k?null:k; });
+  chips($("smaker"), SMAK, true, function(k){ var i=valgt.smak.indexOf(k); if(i>=0) valgt.smak.splice(i,1); else valgt.smak.push(k); });
+
+  function kopier(tekst, ok){
+    function reserve(){ window.prompt("Kopier herfra:", tekst); }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(tekst).then(function(){toast(ok);}, reserve); else reserve();
+  }
+  $("lag").onclick=$("ny").onclick=function(){ gjeldende=lagListe(); tegnListe(); };
+  $("overrask").onclick=function(){
+    var st=Object.keys(STEMNING).filter(function(k){return k!=="jul";});
+    valgt.stemning=st[Math.floor(Math.random()*st.length)]; valgt.smak=[]; oppdaterChips();
+    gjeldende=lagListe(); tegnListe();
+  };
+  $("lagre").onclick=function(){
+    if(!gjeldende.length) return;
+    var navn=window.prompt("Navn på lista:", $("listetittel").textContent); if(!navn) return;
+    lagrede.unshift({navn:navn, ider:gjeldende.map(function(a){return a.id;})}); skriv("lister",lagrede); tegnLagrede(); toast("Lista er lagret");
+  };
+  $("kopier").onclick=function(){
+    var t=$("listetittel").textContent+"\n\n"+gjeldende.map(function(a,i){
+      return (i+1)+". "+a.artist+" – "+a.tittel+" ("+a.aar+")"+(a.qid?"\n   https://open.qobuz.com/album/"+a.qid:"");
+    }).join("\n");
+    kopier(t, "Lista er kopiert");
+  };
+  $("del").onclick=function(){
+    var u=location.href.split("#")[0]+"#liste="+gjeldende.map(function(a){return a.id;}).join(",")+"&navn="+encodeURIComponent($("listetittel").textContent);
+    kopier(u, "Delelenka er kopiert");
+  };
+  $("sok").oninput=tegnKatalog;
+  $("nullstill").onclick=function(){ if(confirm("Fjerne alle tomlene?")){ tomler={}; skriv("tomler",tomler); tegnAlt(); } };
+  [].forEach.call(document.querySelectorAll("nav button"),function(b){ b.onclick=function(){ visFane(b.dataset.tab); }; });
+
+  // ── Fra Spotify (spotify.js) ──
+  // Qobuz har ingen åpen API for å lage spillelister, så hvert spor får en søkelenke.
+  // Avkrysning «lagt inn» huskes i denne nettleseren.
+  var SP = window.SPOTIFY || null;
+  var spFerdig = les("spotify-ferdig", {});
+  var spAapen = null;
+  function spNokkel(s){ return (s.a||[]).join(",")+"|"+s.t; }
+  function spSok(s){
+    var ren = s.t.replace(/\s*[\(\[].*?(remaster|version|live|mono|stereo|feat\.).*?[\)\]]/ig,"").replace(/\s+-\s+(remaster|live|mono|stereo|single|radio).*$/i,"");
+    return "https://www.qobuz.com/no-en/search?q="+encodeURIComponent(((s.a&&s.a[0])||"")+" "+ren);
+  }
+  function spListerAlle(){
+    if(!SP) return [];
+    return [{navn:"Likte sanger", eier:"Stian", spor:SP.likte}].concat(SP.lister.filter(function(l){return l.spor.length;}));
+  }
+  function spTegnOversikt(){
+    var node=$("sp-lister"); node.textContent="";
+    if(!SP){ node.appendChild(el("p",{class:"empty",text:"Fant ingen Spotify-data (spotify.js mangler)."})); return; }
+    var s=$("sp-sok").value.trim().toLowerCase();
+    var lister=spListerAlle();
+    lister.forEach(function(l, i){
+      var treff = !s || l.navn.toLowerCase().indexOf(s)>=0 || l.spor.some(function(x){ return (x.t+" "+(x.a||[]).join(" ")).toLowerCase().indexOf(s)>=0; });
+      if(!treff) return;
+      var gjort=l.spor.filter(function(x){return spFerdig[spNokkel(x)];}).length;
+      var b=el("button",{class:"sp-kort"},[
+        el("div",{},[el("strong",{text:l.navn}), el("div",{class:"tag",text:(l.eier&&l.eier!=="Stian N. Aase"&&l.eier!=="Stian"?"av "+l.eier+" · ":"")+l.spor.length+" spor"})]),
+        el("span",{class:"tag",text: gjort? gjort+" av "+l.spor.length+" lagt inn" : ""})
+      ]);
+      b.onclick=function(){ spVis(i); };
+      node.appendChild(b);
+    });
+    if(!node.children.length) node.appendChild(el("p",{class:"empty",text:"Ingen treff."}));
+  }
+  function spVis(i){
+    spAapen=i; var l=spListerAlle()[i];
+    $("sp-liste").hidden=false; $("sp-tittel").textContent=l.navn;
+    var gjort=l.spor.filter(function(x){return spFerdig[spNokkel(x)];}).length;
+    $("sp-info").textContent=l.spor.length+" spor · "+gjort+" lagt inn i Qobuz. Trykk «Finn i Qobuz», legg sporet i lista di der, og kryss av her.";
+    var ol=$("sp-spor"); ol.textContent=""; var skjul=$("sp-skjul").checked;
+    l.spor.forEach(function(x){
+      var k=spNokkel(x), ok=!!spFerdig[k];
+      if(skjul && ok) return;
+      var cb=el("input",{type:"checkbox","aria-label":"Lagt inn i Qobuz: "+x.t}); cb.checked=ok;
+      cb.onchange=function(){ if(cb.checked) spFerdig[k]=1; else delete spFerdig[k]; skriv("spotify-ferdig",spFerdig); spVis(i); spTegnOversikt(); };
+      ol.appendChild(el("li",{class:ok?"ok":""},[el("div",{class:"sp-rad"},[
+        el("div",{class:"ting"},[el("strong",{text:x.t}), el("span",{class:"tag",text:(x.a||[]).join(", ")+(x.al?" · "+x.al:"")+(x.d?" · "+x.d:"")})]),
+        el("div",{class:"handl"},[el("a",{href:spSok(x),target:"_blank",rel:"noopener",text:"Finn i Qobuz"}), el("label",{class:"check"},[cb, document.createTextNode(" Lagt inn")])])
+      ])]));
+    });
+  }
+  if(SP){
+    $("sp-intro").textContent=SP.likte.length+" likte sanger og "+SP.lister.filter(function(l){return l.spor.length;}).length+" spillelister, hentet fra Spotify "+SP.hentet+". Qobuz lar ikke andre apper lage spillelister for deg, så her finner du sporene ett og ett og krysser av underveis."
+      +(SP.album.length?" Du har også "+SP.album.length+" lagrede album og "+SP.artister.length+" artister i Spotify; de ligger nederst.":"");
+  }
+  $("sp-sok").oninput=spTegnOversikt;
+  $("sp-skjul").onchange=function(){ if(spAapen!==null) spVis(spAapen); };
+  $("sp-tilbake").onclick=function(){ $("sp-liste").hidden=true; spAapen=null; $("sp-lister").scrollIntoView({block:"start"}); };
+  $("sp-kopier").onclick=function(){
+    var l=spListerAlle()[spAapen];
+    kopier(l.navn+"\n\n"+l.spor.map(function(x,n){return (n+1)+". "+(x.a||[]).join(", ")+" – "+x.t;}).join("\n"), "Lista er kopiert");
+  };
+  function spTegnBibliotek(){
+    if(!SP || (!SP.album.length && !SP.artister.length)) return;
+    var p=$("sp-lister").parentNode;
+    var boks=el("div",{style:"margin-top:22px"},[el("h2",{text:"Lagrede album og artister"})]);
+    SP.album.forEach(function(a){
+      boks.appendChild(el("div",{class:"sp-rad",style:"padding:6px 0"},[el("div",{class:"ting"},[el("strong",{text:a.navn}),el("span",{class:"tag",text:a.artist})]),
+        el("a",{href:"https://www.qobuz.com/no-en/search/albums/"+encodeURIComponent(a.artist+" "+a.navn),target:"_blank",rel:"noopener",text:"Finn i Qobuz"})]));
+    });
+    var art=el("p",{class:"sub"});
+    SP.artister.forEach(function(n,i){ if(i) art.appendChild(document.createTextNode(" · ")); art.appendChild(el("a",{href:"https://www.qobuz.com/no-en/search/artists/"+encodeURIComponent(n),target:"_blank",rel:"noopener",text:n})); });
+    boks.appendChild(el("div",{class:"label",text:"Artister"})); boks.appendChild(art);
+    p.appendChild(boks);
+  }
+  spTegnOversikt(); spTegnBibliotek();
+
+  tegnAlt();
+  // delt liste i adressen: #liste=id,id&navn=...
+  var m=/liste=([^&]+)/.exec(location.hash), nm=/navn=([^&]+)/.exec(location.hash);
+  if(m){ var navn="Delt liste"; try{ if(nm) navn=decodeURIComponent(nm[1]); }catch(e){} visIder(m[1].split(","), navn); }
+})();
+</script>
+</body>
+</html>
